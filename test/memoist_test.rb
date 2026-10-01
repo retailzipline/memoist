@@ -269,6 +269,18 @@ class MemoistTest < Minitest::Test
     assert_equal 1, @person.name_calls
   end
 
+  def test_memoist_eval_evaluates_in_the_class_context
+    klass = Class.new
+
+    Memoist.memoist_eval(klass) do
+      def memoist_eval_test
+        :works
+      end
+    end
+
+    assert_equal :works, klass.new.memoist_eval_test
+  end
+
   def test_memoize_with_optional_arguments
     assert_equal 4, @person.sleep(4)
     assert_equal 1, @person.sleep_calls

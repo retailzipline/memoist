@@ -23,7 +23,7 @@ jobs:
         bundler: none
     - name: Install Bundler 2.5
       if: matrix.bundler == '2.5'
-      run: gem install bundler --no-document --force -v '~> 2.5'
+      run: gem install bundler --no-document --force -v '~> 2.5.0'
     - name: Install Bundler
       if: matrix.bundler != '2.5'
       run: gem install bundler --no-document --force

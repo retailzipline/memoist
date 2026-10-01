@@ -11,10 +11,13 @@ jobs:
         include:
           - ruby: 2.0.0
             rubygems: 2.7.8
+            bundler: legacy
           - ruby: 2.1.9
             rubygems: 2.7.8
+            bundler: legacy
           - ruby: 2.2
             rubygems: 2.7.8
+            bundler: legacy
           - ruby: 2.3.4
           - ruby: 2.4.1
           - ruby: 2.5.1
@@ -39,8 +42,12 @@ jobs:
         ruby-version: ${{ matrix.ruby }}
         rubygems: ${{ matrix.rubygems }}
         bundler: none
-    - name: Install bundler
+    - name: Install legacy Bundler
+      if: matrix.bundler == 'legacy'
       run: gem install bundler --no-document --force -v '~> 1.13'
+    - name: Install Bundler
+      if: matrix.bundler != 'legacy'
+      run: gem install bundler --no-document --force
     - name: Install gems
       run: bundle install --jobs 4
     - run: unset JRUBY_OPTS

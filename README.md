@@ -1,6 +1,6 @@
 # Memoist
 
-Memoist supports Ruby 2.0 and later.
+Memoist supports Ruby 3.0 and later.
 
 [![Build Status](https://github.com/matthewrudy/memoist/workflows/ci/badge.svg)](https://github.com/matthewrudy/memoist/actions)
 

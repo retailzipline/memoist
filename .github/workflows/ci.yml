@@ -4,49 +4,22 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ${{ matrix.os || 'ubuntu-24.04' }}
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         include:
-          - ruby: 2.0.0
-            rubygems: 2.7.8
-            bundler: legacy
-          - ruby: 2.1.9
-            rubygems: 2.7.8
-            bundler: legacy
-          - ruby: 2.2
-            rubygems: 2.7.8
-            bundler: legacy
-          - ruby: 2.3.4
-          - ruby: 2.4.1
-          - ruby: 2.5.1
-          - ruby: 2.6.0
-          - ruby: 2.7.5
           - ruby: 3.0.3
           - ruby: 3.1.0
           - ruby: ruby-head
-          - ruby: jruby-9.1
-            os: ubuntu-22.04
           - ruby: jruby-head
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Java for JRuby 9.1
-      if: startsWith(matrix.ruby, 'jruby-9.1')
-      uses: actions/setup-java@v4
-      with:
-        distribution: temurin
-        java-version: '8'
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby }}
-        rubygems: ${{ matrix.rubygems }}
         bundler: none
-    - name: Install legacy Bundler
-      if: matrix.bundler == 'legacy'
-      run: gem install bundler --no-document --force -v '~> 1.13'
     - name: Install Bundler
-      if: matrix.bundler != 'legacy'
       run: gem install bundler --no-document --force
     - name: Install gems
       run: bundle install --jobs 4

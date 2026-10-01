@@ -206,53 +206,28 @@ module Memoist
           #   value
           # end
 
-          if RUBY_VERSION < '2.7'
-            module_eval <<-EOS, __FILE__, __LINE__ + 1
-              def #{method_name}(*args)
-                reload = Memoist.extract_reload!(method(#{unmemoized_method.inspect}), args)
-                key = Memoist.memoized_key(args, {})
+          module_eval <<-EOS, __FILE__, __LINE__ + 1
+            def #{method_name}(*args, **kwargs)
+              reload = Memoist.extract_reload!(method(#{unmemoized_method.inspect}), args)
+              key = Memoist.memoized_key(args, kwargs)
 
-                skip_cache = reload || !(instance_variable_defined?(#{memoized_ivar.inspect}) && #{memoized_ivar} && #{memoized_ivar}.has_key?(key))
-                set_cache = skip_cache && !frozen?
+              skip_cache = reload || !(instance_variable_defined?(#{memoized_ivar.inspect}) && #{memoized_ivar} && #{memoized_ivar}.has_key?(key))
+              set_cache = skip_cache && !frozen?
 
-                if skip_cache
-                  value = #{unmemoized_method}(*args)
-                else
-                  value = #{memoized_ivar}[key]
-                end
-
-                if set_cache
-                  #{memoized_ivar} ||= {}
-                  #{memoized_ivar}[key] = value
-                end
-
-                value
+              if skip_cache
+                value = #{unmemoized_method}(*args, **kwargs)
+              else
+                value = #{memoized_ivar}[key]
               end
-            EOS
-          else
-            module_eval <<-EOS, __FILE__, __LINE__ + 1
-              def #{method_name}(*args, **kwargs)
-                reload = Memoist.extract_reload!(method(#{unmemoized_method.inspect}), args)
-                key = Memoist.memoized_key(args, kwargs)
 
-                skip_cache = reload || !(instance_variable_defined?(#{memoized_ivar.inspect}) && #{memoized_ivar} && #{memoized_ivar}.has_key?(key))
-                set_cache = skip_cache && !frozen?
-
-                if skip_cache
-                  value = #{unmemoized_method}(*args, **kwargs)
-                else
-                  value = #{memoized_ivar}[key]
-                end
-
-                if set_cache
-                  #{memoized_ivar} ||= {}
-                  #{memoized_ivar}[key] = value
-                end
-
-                value
+              if set_cache
+                #{memoized_ivar} ||= {}
+                #{memoized_ivar}[key] = value
               end
-            EOS
-          end
+
+              value
+            end
+          EOS
         end
 
         if private_method_defined?(unmemoized_method)

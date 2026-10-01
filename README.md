@@ -1,5 +1,7 @@
 # Memoist
 
+Memoist supports Ruby 2.0 and later.
+
 [![Build Status](https://github.com/matthewrudy/memoist/workflows/ci/badge.svg)](https://github.com/matthewrudy/memoist/actions)
 
 Memoist is an extraction of ActiveSupport::Memoizable.

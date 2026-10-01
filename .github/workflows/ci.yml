@@ -9,8 +9,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - ruby: 1.9.3
-            rubygems: 2.7.8
           - ruby: 2.0.0
             rubygems: 2.7.8
           - ruby: 2.1.10
@@ -25,7 +23,6 @@ jobs:
           - ruby: 3.0.3
           - ruby: 3.1.0
           - ruby: ruby-head
-          - ruby: jruby-d19
           - ruby: jruby-9.1.9.0
           - ruby: jruby-head
     steps:

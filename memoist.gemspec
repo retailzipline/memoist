@@ -40,7 +40,7 @@ Gem::Specification.new do |spec|
   if RUBY_VERSION < '1.9.3'
     spec.add_development_dependency 'rake', '~> 10.4'
   else
-    spec.add_development_dependency 'rake'
+    spec.add_development_dependency 'rake', '>= 12.3.3'
   end
   spec.add_development_dependency 'minitest', '~> 5.10'
 end

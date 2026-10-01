@@ -11,9 +11,9 @@ jobs:
         include:
           - ruby: 2.0.0
             rubygems: 2.7.8
-          - ruby: 2.1.10
+          - ruby: 2.1.9
             rubygems: 2.7.8
-          - ruby: 2.2.7
+          - ruby: 2.2
             rubygems: 2.7.8
           - ruby: 2.3.4
           - ruby: 2.4.1
@@ -23,35 +23,24 @@ jobs:
           - ruby: 3.0.3
           - ruby: 3.1.0
           - ruby: ruby-head
-          - ruby: jruby-9.1.9.0
+          - ruby: jruby-9.1
           - ruby: jruby-head
     steps:
-    - uses: actions/checkout@v2
-    - name: Install rvm
-      run: |
-        curl -sSL https://get.rvm.io | bash
-    - name: Install ruby
-      run: |
-        source $HOME/.rvm/scripts/rvm
-        rvm use ${{ matrix.ruby }} --default --install --binary --fuzzy --create
-    - name: Check ruby version
-      run: |
-        source $HOME/.rvm/scripts/rvm
-        ruby --version
-    - name: Update rubygems
-      run: |
-        source $HOME/.rvm/scripts/rvm
-        gem update --system ${{ matrix.rubygems }}
+    - uses: actions/checkout@v4
+    - name: Set up Java for JRuby 9.1
+      if: startsWith(matrix.ruby, 'jruby-9.1')
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: '8'
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby }}
+        rubygems: ${{ matrix.rubygems }}
     - name: Install bundler
-      run: |
-        source $HOME/.rvm/scripts/rvm
-        gem install bundler --no-document -v '~> 1.13'
+      run: gem install bundler --no-document -v '~> 1.13'
     - name: Install gems
-      run: |
-        source $HOME/.rvm/scripts/rvm
-        bundle install --jobs 4
+      run: bundle install --jobs 4
     - run: unset JRUBY_OPTS
     - name: Run rake
-      run: |
-        source $HOME/.rvm/scripts/rvm
-        bundle exec rake
+      run: bundle exec rake

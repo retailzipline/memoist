@@ -10,7 +10,9 @@ jobs:
       matrix:
         include:
           - ruby: 3.0.3
+            bundler: '2.5'
           - ruby: 3.1.0
+            bundler: '2.5'
           - ruby: ruby-head
           - ruby: jruby-head
     steps:
@@ -19,7 +21,11 @@ jobs:
       with:
         ruby-version: ${{ matrix.ruby }}
         bundler: none
+    - name: Install Bundler 2.5
+      if: matrix.bundler == '2.5'
+      run: gem install bundler --no-document --force -v '~> 2.5'
     - name: Install Bundler
+      if: matrix.bundler != '2.5'
       run: gem install bundler --no-document --force
     - name: Install gems
       run: bundle install --jobs 4

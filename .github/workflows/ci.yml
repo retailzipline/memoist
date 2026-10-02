@@ -4,54 +4,32 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         include:
-          - ruby: 1.9.3
-            rubygems: 2.7.8
-          - ruby: 2.0.0
-            rubygems: 2.7.8
-          - ruby: 2.1.10
-            rubygems: 2.7.8
-          - ruby: 2.2.7
-            rubygems: 2.7.8
-          - ruby: 2.3.4
-          - ruby: 2.4.1
-          - ruby: 2.5.1
-          - ruby: 2.6.0
+          - ruby: 3.0.3
+            bundler: '2.5'
+          - ruby: 3.1.0
+            bundler: '2.5'
+          - ruby: '3.4'
           - ruby: ruby-head
-          - ruby: jruby-d19
-          - ruby: jruby-9.1.9.0
           - ruby: jruby-head
     steps:
-    - uses: actions/checkout@v2
-    - name: Install rvm
-      run: |
-        curl -sSL https://get.rvm.io | bash
-    - name: Install ruby
-      run: |
-        source $HOME/.rvm/scripts/rvm
-        rvm use ${{ matrix.ruby }} --default --install --binary --fuzzy --create
-    - name: Check ruby version
-      run: |
-        source $HOME/.rvm/scripts/rvm
-        ruby --version
-    - name: Update rubygems
-      run: |
-        source $HOME/.rvm/scripts/rvm
-        gem update --system ${{ matrix.rubygems }}
-    - name: Install bundler
-      run: |
-        source $HOME/.rvm/scripts/rvm
-        gem install bundler --no-document -v '~> 1.13'
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+    - uses: ruby/setup-ruby@14594264cd68ce8a2345dd349bc3d138a4ef85c8 # v1.327.0
+      with:
+        ruby-version: ${{ matrix.ruby }}
+        bundler: none
+    - name: Install Bundler 2.5
+      if: matrix.bundler == '2.5'
+      run: gem install bundler --no-document --force -v '~> 2.5.0'
+    - name: Install Bundler
+      if: matrix.bundler != '2.5'
+      run: gem install bundler --no-document --force
     - name: Install gems
-      run: |
-        source $HOME/.rvm/scripts/rvm
-        bundle install --jobs 4
+      run: bundle install --jobs 4
     - run: unset JRUBY_OPTS
     - name: Run rake
-      run: |
-        source $HOME/.rvm/scripts/rvm
-        bundle exec rake
+      run: bundle exec rake

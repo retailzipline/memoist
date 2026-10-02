@@ -93,6 +93,26 @@ class MemoistTest < Minitest::Test
       @counter.count(:update_attributes)
     end
 
+    def do_with_special(_regular = 10, special_one: true, special_two: true)
+      @counter.call(:do_with_special)
+      true
+    end
+    memoize :do_with_special
+
+    def do_with_special_calls
+      @counter.count(:do_with_special)
+    end
+
+    def memoized_arguments(*args, **kwargs)
+      @counter.call(:memoized_arguments)
+      [args, kwargs]
+    end
+    memoize :memoized_arguments
+
+    def memoized_arguments_calls
+      @counter.count(:memoized_arguments)
+    end
+
     protected
 
     def memoize_protected_test
@@ -249,6 +269,18 @@ class MemoistTest < Minitest::Test
     assert_equal 1, @person.name_calls
   end
 
+  def test_memoist_eval_evaluates_in_the_class_context
+    klass = Class.new
+
+    Memoist.memoist_eval(klass) do
+      def memoist_eval_test
+        :works
+      end
+    end
+
+    assert_equal :works, klass.new.memoist_eval_test
+  end
+
   def test_memoize_with_optional_arguments
     assert_equal 4, @person.sleep(4)
     assert_equal 1, @person.sleep_calls
@@ -269,6 +301,37 @@ class MemoistTest < Minitest::Test
 
     3.times { assert_equal true, @person.update_attributes({ age: 21, name: 'James' }, :reload) }
     assert_equal 4, @person.update_attributes_calls
+  end
+
+  def test_memoize_with_kwargs
+    assert_equal true, @person.do_with_special(1, special_one: true)
+    assert_equal 1, @person.do_with_special_calls
+
+    3.times { assert_equal true, @person.do_with_special(1, special_one: true) }
+    assert_equal 1, @person.do_with_special_calls
+
+    assert_equal true, @person.do_with_special(2)
+    assert_equal 2, @person.do_with_special_calls
+
+    assert_equal true, @person.do_with_special(1, special_one: false)
+    assert_equal 3, @person.do_with_special_calls
+
+    assert_equal true, @person.do_with_special(1, special_two: false)
+    assert_equal 4, @person.do_with_special_calls
+  end
+
+  def test_memoized_arguments_do_not_collide_with_keyword_arguments
+    assert_equal [[[:name, 'Ada']], {}], @person.memoized_arguments([:name, 'Ada'])
+    assert_equal [[], { name: 'Ada' }], @person.memoized_arguments(name: 'Ada')
+    assert_equal 2, @person.memoized_arguments_calls
+  end
+
+  def test_memoized_arguments_ignore_keyword_argument_order
+    expected = [[], { first_name: 'Ada', last_name: 'Lovelace' }]
+
+    assert_equal expected, @person.memoized_arguments(first_name: 'Ada', last_name: 'Lovelace')
+    assert_equal expected, @person.memoized_arguments(last_name: 'Lovelace', first_name: 'Ada')
+    assert_equal 1, @person.memoized_arguments_calls
   end
 
   def test_memoization_with_punctuation
@@ -361,7 +424,7 @@ class MemoistTest < Minitest::Test
     # Student < Person   memoize :name, :identifier => :student
     # Teacher < Person   memoize :seniority
 
-    expected = %w[age age? is_developer? memoize_protected_test name name? sleep update update_attributes]
+    expected = %w[age age? do_with_special is_developer? memoize_protected_test memoized_arguments name name? sleep update update_attributes]
     structs = Person.all_memoized_structs
     assert_equal expected, structs.collect(&:memoized_method).collect(&:to_s).sort
     assert_equal '@_memoized_name', structs.detect { |s| s.memoized_method == :name }.ivar

@@ -65,6 +65,10 @@ module Memoist
     reload
   end
 
+  def self.memoized_key(args, kwargs)
+    [args, kwargs]
+  end
+
   module InstanceMethods
     def memoize_all
       prime_cache
@@ -203,21 +207,22 @@ module Memoist
           # end
 
           module_eval <<-EOS, __FILE__, __LINE__ + 1
-            def #{method_name}(*args)
+            def #{method_name}(*args, **kwargs)
               reload = Memoist.extract_reload!(method(#{unmemoized_method.inspect}), args)
+              key = Memoist.memoized_key(args, kwargs)
 
-              skip_cache = reload || !(instance_variable_defined?(#{memoized_ivar.inspect}) && #{memoized_ivar} && #{memoized_ivar}.has_key?(args))
+              skip_cache = reload || !(instance_variable_defined?(#{memoized_ivar.inspect}) && #{memoized_ivar} && #{memoized_ivar}.has_key?(key))
               set_cache = skip_cache && !frozen?
 
               if skip_cache
-                value = #{unmemoized_method}(*args)
+                value = #{unmemoized_method}(*args, **kwargs)
               else
-                value = #{memoized_ivar}[args]
+                value = #{memoized_ivar}[key]
               end
 
               if set_cache
                 #{memoized_ivar} ||= {}
-                #{memoized_ivar}[args] = value
+                #{memoized_ivar}[key] = value
               end
 
               value
